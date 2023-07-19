@@ -1,0 +1,83 @@
+package guru.hakandurmaz.blog.service.impl;
+
+import guru.hakandurmaz.blog.entity.Role;
+import guru.hakandurmaz.blog.entity.User;
+import guru.hakandurmaz.blog.exception.BlogAPIException;
+import guru.hakandurmaz.blog.payload.security.LoginRequest;
+import guru.hakandurmaz.blog.payload.security.SignupRequest;
+import guru.hakandurmaz.blog.repository.RoleRepository;
+import guru.hakandurmaz.blog.repository.UserRepository;
+import guru.hakandurmaz.blog.security.JwtTokenProvider;
+import guru.hakandurmaz.blog.service.AuthService;
+import java.util.Collections;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@AllArgsConstructor
+public class AuthServiceImpl implements AuthService {
+
+  private final UserRepository userRepository;
+  private final RoleRepository roleRepository;
+  private final AuthenticationManager authenticationManager;
+  private final PasswordEncoder passwordEncoder;
+  private final JwtTokenProvider jwtTokenProvider;
+
+  @Override
+  public String registerUser(SignupRequest signupRequest) {
+    if (Boolean.TRUE.equals(userRepository.existsByUsername(signupRequest.getUsername()))) {
+      return "Username is already taken!";
+    } else if (Boolean.TRUE.equals(userRepository.existsByEmail(signupRequest.getEmail()))) {
+      return "Email is already taken!";
+    } else if (this.isIllegalMail(signupRequest.getEmail())) {
+      return "Email is illegal to register";
+    } else {
+      // crete user object
+      User user = new User();
+      user.setEmail(signupRequest.getEmail());
+      user.setUsername(signupRequest.getUsername());
+      user.setName(signupRequest.getName());
+      user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+
+      Role roles =
+          roleRepository
+              .findByName("ROLE_USER")
+              .orElseThrow(() -> new BlogAPIException(HttpStatus.BAD_REQUEST, "Role Bulunamadı."));
+      user.setRoles(Collections.singleton(roles));
+
+      userRepository.saveAndFlush(user);
+    }
+    return "User registered";
+  }
+
+  @Override
+  @Transactional
+  public String getToken(LoginRequest loginRequest) {
+
+    if (this.isIllegalMail(loginRequest.getUsernameOrEmail())) {
+      return "Email is illegal to login. Your email is banned.";
+    }
+
+    Authentication authentication =
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginRequest.getUsernameOrEmail(), loginRequest.getPassword()));
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    return jwtTokenProvider.generateToken(authentication);
+  }
+
+  private boolean isIllegalMail(String email) {
+    // MailCheckerResponse mailCheckerResponse = mailClient.isIllegal(email);
+    // return Boolean.TRUE.equals(mailCheckerResponse.isIllegal());
+    return false;
+  }
+}

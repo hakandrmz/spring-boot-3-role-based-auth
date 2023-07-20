@@ -5,7 +5,7 @@ logging:
         security: debug
 app:
   jwt-expiration-milliseconds: 86400000
-  jwt-secret: ikORW9Muy0e5fQDKs5z53zG1RxfeX0SPVMvYawmbRveZPodylYcjBbGnBLvBEJJi
+  jwt-secret: jlPSXaNvz1f6gRELt6s64sH2SygfY1TQWNwZbxncSwfwQpezmZdkCcHoCMwCFKKj
 spring:
   application:
     name: blogapp
@@ -24,18 +24,8 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  zipkin:
-    base-url: http://localhost:9411
-  rabbitmq:
-    addresses: localhost:5672
 server:
   port: 8080
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    fetch-registry: true
-    register-with-eureka: true
 management:
   endpoints:
     web:

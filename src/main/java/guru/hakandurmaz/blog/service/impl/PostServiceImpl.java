@@ -1,6 +1,7 @@
 package guru.hakandurmaz.blog.service.impl;
 
 import guru.hakandurmaz.blog.entity.Post;
+import guru.hakandurmaz.blog.exception.ResourceNotFoundException;
 import guru.hakandurmaz.blog.payload.post.CreatePostRequest;
 import guru.hakandurmaz.blog.payload.post.GetPostByIdDto;
 import guru.hakandurmaz.blog.payload.post.GetPostDto;
@@ -10,7 +11,6 @@ import guru.hakandurmaz.blog.repository.PostRepository;
 import guru.hakandurmaz.blog.service.PostService;
 import guru.hakandurmaz.blog.utils.mappers.ModelMapperService;
 import guru.hakandurmaz.blog.utils.results.DataResult;
-import guru.hakandurmaz.blog.utils.results.ErrorDataResult;
 import guru.hakandurmaz.blog.utils.results.ErrorResult;
 import guru.hakandurmaz.blog.utils.results.Result;
 import guru.hakandurmaz.blog.utils.results.SuccessDataResult;
@@ -66,26 +66,26 @@ public class PostServiceImpl implements PostService {
 
   @Override
   public DataResult getPostById(long id) {
-    if (postRepository.existsById(id)) {
-      Post post = postRepository.getById(id);
-      return new SuccessDataResult(modelMapperService.forDto().map(post, GetPostByIdDto.class));
-    } else {
-      return new ErrorDataResult<>("This post is not found");
-    }
+
+    Post post =
+        postRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
+    return new SuccessDataResult<>(modelMapperService.forDto().map(post, GetPostByIdDto.class));
   }
 
   @Override
   public Result updatePost(UpdatePostRequest postRequest) {
-    if (postRepository.existsById(postRequest.getId())) {
-      Post post = postRepository.getById(postRequest.getId());
-      post.setDescription(postRequest.getDescription());
-      post.setContent(postRequest.getContent());
-      post.setTitle(postRequest.getTitle());
-      postRepository.save(post);
-      return new SuccessResult("Post is updated");
-    } else {
-      return new ErrorResult("This post is not found");
-    }
+
+    Post post =
+        postRepository
+            .findById(postRequest.getId())
+            .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postRequest.getId()));
+    post.setDescription(postRequest.getDescription());
+    post.setContent(postRequest.getContent());
+    post.setTitle(postRequest.getTitle());
+    postRepository.save(post);
+    return new SuccessResult("Post is updated");
   }
 
   @Override

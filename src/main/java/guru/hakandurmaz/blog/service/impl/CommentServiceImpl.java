@@ -24,9 +24,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class CommentServiceImpl implements CommentService {
 
-  private CommentRepository commentRepository;
-  private PostRepository postRepository;
-  private ModelMapperService modelMapperService;
+  private final CommentRepository commentRepository;
+  private final PostRepository postRepository;
+  private final ModelMapperService modelMapperService;
 
   // DI
   public CommentServiceImpl(
@@ -45,7 +45,7 @@ public class CommentServiceImpl implements CommentService {
       Comment comment = this.modelMapperService.forRequest().map(commentRequest, Comment.class);
       comment.setPost(post.get());
       commentRepository.save(comment);
-      return new SuccessResult("Yorum Kaydedildi");
+      return new SuccessResult("Comment saved.");
     } else {
       return new ErrorResult("Post is not exist");
     }

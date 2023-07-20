@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ModelMapperManager implements ModelMapperService {
 
-  private ModelMapper modelMapper;
+  private final ModelMapper modelMapper;
 
   @Autowired
   public ModelMapperManager(ModelMapper modelMapper) {

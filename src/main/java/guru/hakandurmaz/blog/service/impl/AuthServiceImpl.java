@@ -36,8 +36,6 @@ public class AuthServiceImpl implements AuthService {
       return "Username is already taken!";
     } else if (Boolean.TRUE.equals(userRepository.existsByEmail(signupRequest.getEmail()))) {
       return "Email is already taken!";
-    } else if (this.isIllegalMail(signupRequest.getEmail())) {
-      return "Email is illegal to register";
     } else {
       // crete user object
       User user = new User();
@@ -49,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
       Role roles =
           roleRepository
               .findByName("ROLE_USER")
-              .orElseThrow(() -> new BlogAPIException(HttpStatus.BAD_REQUEST, "Role Bulunamadı."));
+              .orElseThrow(() -> new BlogAPIException(HttpStatus.BAD_REQUEST, "Role Not found."));
       user.setRoles(Collections.singleton(roles));
 
       userRepository.saveAndFlush(user);
@@ -61,10 +59,6 @@ public class AuthServiceImpl implements AuthService {
   @Transactional
   public String getToken(LoginRequest loginRequest) {
 
-    if (this.isIllegalMail(loginRequest.getUsernameOrEmail())) {
-      return "Email is illegal to login. Your email is banned.";
-    }
-
     Authentication authentication =
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
@@ -73,11 +67,5 @@ public class AuthServiceImpl implements AuthService {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     return jwtTokenProvider.generateToken(authentication);
-  }
-
-  private boolean isIllegalMail(String email) {
-    // MailCheckerResponse mailCheckerResponse = mailClient.isIllegal(email);
-    // return Boolean.TRUE.equals(mailCheckerResponse.isIllegal());
-    return false;
   }
 }
